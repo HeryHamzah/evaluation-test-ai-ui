@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qna_frontend/features/chat/presentation/providers/chat_provider.dart';
 import 'package:qna_frontend/features/chat/presentation/widgets/doc_viewer.dart';
 import 'package:qna_frontend/features/chat/presentation/widgets/message_bubble.dart';
+import 'package:qna_frontend/features/chat/presentation/widgets/typing_indicator.dart';
 import 'package:qna_frontend/features/upload/presentation/providers/upload_provider.dart';
 import 'package:qna_frontend/features/upload/presentation/widgets/upload_widget.dart';
 
@@ -58,18 +59,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey[200]!),
+                    ),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.chat_bubble_outline, 
-                        color: Theme.of(context).colorScheme.primary),
+                      Icon(
+                        Icons.chat_bubble_outline,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                       const SizedBox(width: 12),
                       Text(
                         'Chat Knowledge Agent',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -92,37 +97,56 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             Expanded(
                               child: chatState.when(
                                 data: (messages) {
-                                  WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
-                                  
+                                  WidgetsBinding.instance.addPostFrameCallback(
+                                    (_) => _scrollToBottom(),
+                                  );
+
                                   if (messages.isEmpty) {
                                     return Center(
                                       child: Text(
                                         'Ask me anything about your document!',
-                                        style: TextStyle(color: Colors.grey[400]),
+                                        style: TextStyle(
+                                          color: Colors.grey[400],
+                                        ),
                                       ),
                                     );
                                   }
-                                  
+
                                   return ListView.builder(
                                     controller: _scrollController,
                                     padding: const EdgeInsets.all(16),
-                                    itemCount: messages.length,
+                                    itemCount:
+                                        messages.length +
+                                        (chatState.isLoading ? 1 : 0),
                                     itemBuilder: (context, index) {
-                                      return MessageBubble(message: messages[index]);
+                                      if (index == messages.length) {
+                                        return const Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: TypingIndicator(),
+                                        );
+                                      }
+                                      return MessageBubble(
+                                        message: messages[index],
+                                      );
                                     },
                                   );
                                 },
-                                loading: () => const Center(child: CircularProgressIndicator()),
-                                error: (err, stack) => Center(child: Text('Error: $err')),
+                                loading: () => const Center(
+                                  child: CircularProgressIndicator(),
+                                ),
+                                error: (err, stack) =>
+                                    Center(child: Text('Error: $err')),
                               ),
                             ),
-                            
+
                             // Input Area
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                border: Border(top: BorderSide(color: Colors.grey[200]!)),
+                                border: Border(
+                                  top: BorderSide(color: Colors.grey[200]!),
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -153,14 +177,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               ],
             ),
           ),
-          
+
           // DocViewer (Side Panel)
           if (isLargeScreen) ...[
             const VerticalDivider(width: 1),
-            const Expanded(
-              flex: 1,
-              child: DocViewer(),
-            ),
+            const Expanded(flex: 1, child: DocViewer()),
           ],
         ],
       ),

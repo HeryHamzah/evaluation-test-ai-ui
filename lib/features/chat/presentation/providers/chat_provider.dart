@@ -42,23 +42,30 @@ class Chat extends _$Chat {
   /// 4. Updates the state with the AI's response.
   /// 5. Handles errors by setting the state to [AsyncValue.error].
   Future<void> sendMessage(String question) async {
-    state = const AsyncValue.loading();
-    
-    // Add user message immediately (Optimistic UI)
+    // 1. Add user message immediately (Optimistic UI)
     final userMessage = MessageModel(
       text: question,
       isUser: true,
       timestamp: DateTime.now(),
     );
-    
+
     final currentMessages = state.value ?? [];
     state = AsyncValue.data([...currentMessages, userMessage]);
+
+    // 2. Set loading state but KEEP the data
+    state = const AsyncValue<List<MessageModel>>.loading().copyWithPrevious(
+      state,
+    );
 
     try {
       final repository = ref.read(chatRepositoryProvider);
       final response = await repository.sendMessage(question);
-      
-      state = AsyncValue.data([...state.value!, response]);
+
+      // 3. Update with AI response
+      // We need to fetch the latest state value again because it might have changed (though unlikely in this simple flow)
+      // But more importantly, we want to append to the list that includes the user message.
+      final messagesWithUser = state.value ?? [];
+      state = AsyncValue.data([...messagesWithUser, response]);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }

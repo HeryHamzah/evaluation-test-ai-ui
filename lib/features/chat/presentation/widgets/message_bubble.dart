@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:qna_frontend/features/chat/data/models/message_model.dart';
+import 'package:qna_frontend/features/chat/presentation/widgets/typewriter_markdown.dart';
 
 /// Displays a single chat message.
 ///
@@ -44,21 +46,37 @@ class MessageBubble extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              message.text,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: isUser ? Colors.white : theme.colorScheme.onSurface,
-                height: 1.5,
+            if (isUser)
+              Text(
+                message.text,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: Colors.white,
+                  height: 1.5,
+                ),
+              )
+            else
+              TypewriterMarkdown(
+                text: message.text,
+                styleSheet: MarkdownStyleSheet(
+                  p: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    height: 1.5,
+                  ),
+                ),
               ),
-            ),
-            if (!isUser && message.sources != null && message.sources!.isNotEmpty) ...[
+            if (!isUser &&
+                message.sources != null &&
+                message.sources!.isNotEmpty) ...[
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: message.sources!.map((source) {
                   return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.secondary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
